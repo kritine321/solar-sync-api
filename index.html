@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Painel Solar C2</title>
+    <style>body { background: #121212; color: lime; font-family: monospace; padding: 20px; }</style>
+</head>
+<body>
+    <h1>Dispositivos Conectados</h1>
+    <div id="lista">Aguardando dados...</div>
+
+    <script>
+        async function atualizar() {
+            try {
+                const res = await fetch('https://kjistyuk-tob.up.railway.app/admin/list');
+                const data = await res.json();
+                document.getElementById('lista').innerText = JSON.stringify(data, null, 2);
+            } catch (e) {
+                document.getElementById('lista').innerText = "Erro ao conectar no servidor.";
+            }
+        }
+        setInterval(atualizar, 5000); // Atualiza a cada 5 segundos
+        atualizar();
+    </script>
+</body>
+</html>
