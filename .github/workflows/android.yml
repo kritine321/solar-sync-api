@@ -4,35 +4,55 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      project_dir:
+        description: 'Project root containing gradlew (use "." if root or "android" etc)'
+        required: false
+        default: '.'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PROJECT_DIR: ${{ github.event.inputs.project_dir || '.' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
-          # Se o projeto ainda exigir Java 11, troque para '11'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        # Substitui o cache manual do Gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+      - name: Grant execute permission for gradlew (if present)
+        run: |
+          if [ -f "${PROJECT_DIR}/gradlew" ]; then
+            chmod +x "${PROJECT_DIR}/gradlew"
+          else
+            echo "No gradlew found in ${PROJECT_DIR}"
+          fi
+
+      - name: Choose Gradle command
+        run: |
+          if [ -f "${PROJECT_DIR}/gradlew" ]; then
+            echo "GRADLE_CMD=${PROJECT_DIR}/gradlew" >> $GITHUB_ENV
+          else
+            echo "GRADLE_CMD=gradle" >> $GITHUB_ENV
+          fi
 
       - name: Build with Gradle
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: |
+          cd "${PROJECT_DIR}"
+          $GRADLE_CMD assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: solar-app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
