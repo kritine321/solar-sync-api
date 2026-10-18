@@ -1,4 +1,5 @@
 name: Android Build
+
 on:
   push:
     branches: [ main ]
@@ -16,7 +17,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '11'
+          java-version: '17' # Atualizado para 17 (recomendado para Android)
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -46,11 +47,13 @@ jobs:
           yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
           sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.0"
 
-      - name: Make wrapper executable
-        run: chmod +x ./gradlew
+      - name: Fix gradlew line endings and make it executable
+        run: |
+          sed -i 's/\r$//' gradlew
+          chmod +x ./gradlew
 
       - name: Build APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
