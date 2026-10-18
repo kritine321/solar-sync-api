@@ -1,4 +1,4 @@
-name: build apk
+name: Build APK
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       project_dir:
-        description: 'project root containing gradlew (use "." if root or "android" etc)'
+        description: 'Project root containing gradlew (use "." if root or "android" etc)'
         required: false
         default: '.'
 
@@ -14,45 +14,45 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      project_dir: ${{ github.event.inputs.project_dir || '.' }}
+      PROJECT_DIR: ${{ github.event.inputs.project_dir || '.' }}
 
     steps:
-      - name: checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: set up jdk
+      - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: setup gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: grant execute permission for gradlew (if present)
+      - name: Grant execute permission for gradlew (if present)
         run: |
-          if [ -f "${project_dir}/gradlew" ]; then
-            chmod +x "${project_dir}/gradlew"
+          if [ -f "${PROJECT_DIR}/gradlew" ]; then
+            chmod +x "${PROJECT_DIR}/gradlew"
           else
-            echo "no gradlew found in ${project_dir}"
+            echo "No gradlew found in ${PROJECT_DIR}"
           fi
 
-      - name: choose gradle command
+      - name: Choose Gradle command
         run: |
-          if [ -f "${project_dir}/gradlew" ]; then
-            echo "gradle_cmd=${project_dir}/gradlew" >> $github_env
+          if [ -f "${PROJECT_DIR}/gradlew" ]; then
+            echo "GRADLE_CMD=${PROJECT_DIR}/gradlew" >> $GITHUB_ENV
           else
-            echo "gradle_cmd=gradle" >> $github_env
+            echo "GRADLE_CMD=gradle" >> $GITHUB_ENV
           fi
 
-      - name: build with gradle
+      - name: Build with Gradle
         run: |
-          cd "${project_dir}"
-          $gradle_cmd assembledebug --no-daemon --stacktrace
+          cd "${PROJECT_DIR}"
+          $GRADLE_CMD assembleDebug --no-daemon --stacktrace
 
-      - name: upload apk
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: solar-app-debug
-          path: ${{ env.project_dir }}/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
