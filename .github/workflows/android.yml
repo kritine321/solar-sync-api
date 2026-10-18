@@ -1,58 +1,13 @@
-name: Build APK
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      project_dir:
-        description: 'Project root containing gradlew (use "." if root or "android" etc)'
-        required: false
-        default: '.'
-
+name: Android Build
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      PROJECT_DIR: ${{ github.event.inputs.project_dir || '.' }}
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Grant execute permission for gradlew (if present)
-        run: |
-          if [ -f "${PROJECT_DIR}/gradlew" ]; then
-            chmod +x "${PROJECT_DIR}/gradlew"
-          else
-            echo "No gradlew found in ${PROJECT_DIR}"
-          fi
-
-      - name: Choose Gradle command
-        run: |
-          if [ -f "${PROJECT_DIR}/gradlew" ]; then
-            echo "GRADLE_CMD=${PROJECT_DIR}/gradlew" >> $GITHUB_ENV
-          else
-            echo "GRADLE_CMD=gradle" >> $GITHUB_ENV
-          fi
-
-      - name: Build with Gradle
-        run: |
-          cd "${PROJECT_DIR}"
-          $GRADLE_CMD assembleDebug --no-daemon --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: solar-app-debug
-          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {java-version: '11', distribution: 'temurin'}
+      - name: Build APK
+        run: chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with: {name: app-debug, path: app/build/outputs/apk/debug}
